@@ -7,8 +7,9 @@ import android.view.Menu;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements HorizontalZoomingCarouselListener {
 
 	int[] resources = { R.drawable.a1, R.drawable.b1, R.drawable.c1, R.drawable.d1, R.drawable.e1 };
 
@@ -31,7 +32,8 @@ public class MainActivity extends Activity {
 			imageViews[i] = iv;
 		}
 		
-		HorizonalZoomingCarousel carousel = new HorizonalZoomingCarousel(this, imageViews);
+		HorizontalZoomingCarousel carousel = new HorizontalZoomingCarousel(this, imageViews);
+		carousel.setListener(this);
 		RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
 		mainLayout.addView(carousel);
 	}
@@ -41,6 +43,12 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	@Override
+	public void onItemSelected(int index) {
+		Toast.makeText(this, String.valueOf(index), Toast.LENGTH_SHORT).show();
+		
 	}
 
 }

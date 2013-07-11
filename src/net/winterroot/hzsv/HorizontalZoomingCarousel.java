@@ -12,17 +12,21 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
 
-public class HorizonalZoomingCarousel extends HorizontalScrollView {
 
+public class HorizontalZoomingCarousel extends HorizontalScrollView {
+
+	HorizontalZoomingCarouselListener listener = null;
 	Context c;
+	
+	int edgeBufferWidth = 220;
+	
 	
 	int[] resources = { R.drawable.a1, R.drawable.b1, R.drawable.c1, R.drawable.d1, R.drawable.e1 };
 	ImageView[] imageViews;
 	
 	LinearLayout mScrollableArea;
 	
-	
-	public HorizonalZoomingCarousel(Context context, ImageView[] instanceImageViews) {
+	public HorizontalZoomingCarousel(Context context, ImageView[] instanceImageViews) {
 		super(context);
 		c = context;
 		imageViews = instanceImageViews;
@@ -32,11 +36,26 @@ public class HorizonalZoomingCarousel extends HorizontalScrollView {
 		android.view.ViewGroup.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 122);
 		mScrollableArea.setLayoutParams(params);
 		
+		LinearLayout.LayoutParams bufferLayoutParams =  new LinearLayout.LayoutParams(edgeBufferWidth, LayoutParams.MATCH_PARENT);
+		LinearLayout edgeBuffer = new LinearLayout(context);
+		edgeBuffer.setLayoutParams(bufferLayoutParams);
+		mScrollableArea.addView(edgeBuffer);
+		
 		for(ImageView iv : imageViews){
+			android.view.ViewGroup.LayoutParams lp = new android.view.ViewGroup.LayoutParams(216, LayoutParams.WRAP_CONTENT);
+			iv.setLayoutParams(lp);
 			mScrollableArea.addView(iv);
 		}
 		
+		LinearLayout edgeBufferRight = new LinearLayout(context);
+		edgeBufferRight.setLayoutParams(bufferLayoutParams);
+		mScrollableArea.addView(edgeBufferRight);
+		
 		addView(mScrollableArea);
+	}
+	
+	public void setListener(HorizontalZoomingCarouselListener theListener){
+		listener = theListener;
 	}
 
 	/*  Not going to use these ones
@@ -146,10 +165,15 @@ public class HorizonalZoomingCarousel extends HorizontalScrollView {
 	            break;
 	        case(MotionEvent.ACTION_UP):
 	        	
+	        	int itemWidth = 216;
+	        	
 	        	int scrollX = getScrollX();
-	        	int page = scrollX / 108;
-	        	int offset = page * 108;
+	        	int page = (scrollX + itemWidth / 2) / itemWidth;
+	        	int offset = page * itemWidth;
 	            this.smoothScrollTo(offset, 0);
+	            if(listener != null){
+	            	listener.onItemSelected(page);
+	            }
 	            
 	            break;
 	    }
