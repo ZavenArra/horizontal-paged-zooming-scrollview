@@ -123,9 +123,12 @@ public class AScrollView extends HorizontalScrollView {
 	        case(MotionEvent.ACTION_DOWN):
 	            break;
 	        case(MotionEvent.ACTION_UP):
+	        	
 	        	int scrollX = getScrollX();
-	        	int page = scrollX % 108;
-	            this.smoothScrollTo(page * 108, 0);
+	        	int page = scrollX / 108;
+	        	int offset = page * 108;
+	            this.smoothScrollTo(offset, 0);
+	            
 	            break;
 	    }
 
