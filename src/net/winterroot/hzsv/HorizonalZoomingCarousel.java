@@ -12,22 +12,44 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
 
-public class AScrollView extends HorizontalScrollView {
+public class HorizonalZoomingCarousel extends HorizontalScrollView {
 
-	public AScrollView(Context context) {
+	Context c;
+	
+	int[] resources = { R.drawable.a1, R.drawable.b1, R.drawable.c1, R.drawable.d1, R.drawable.e1 };
+	ImageView[] imageViews;
+	
+	LinearLayout mScrollableArea;
+	
+	
+	public HorizonalZoomingCarousel(Context context, ImageView[] instanceImageViews) {
 		super(context);
-		// TODO Auto-generated constructor stub
+		c = context;
+		imageViews = instanceImageViews;
+		
+		mScrollableArea	 = new LinearLayout(context);	
+		mScrollableArea.setOrientation(LinearLayout.HORIZONTAL);
+		android.view.ViewGroup.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 122);
+		mScrollableArea.setLayoutParams(params);
+		
+		for(ImageView iv : imageViews){
+			mScrollableArea.addView(iv);
+		}
+		
+		addView(mScrollableArea);
 	}
 
-	public AScrollView(Context context, AttributeSet attrs) {
+	/*  Not going to use these ones
+	public HorizonalZoomingCarousel(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		// TODO Auto-generated constructor stub
+		c= context;
 	}
 
-	public AScrollView(Context context, AttributeSet attrs, int defStyle) {
+	public HorizonalZoomingCarousel(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		// TODO Auto-generated constructor stub
+		c= context;
 	}
+	*/
 	
 	@Override
 	public void fling (int velocityY)
@@ -37,11 +59,12 @@ public class AScrollView extends HorizontalScrollView {
 	    */
 	}
 
+	
 
 	@Override
 	protected void onLayout (boolean changed, int left, int top, int right, int bottom){
 		super.onLayout(changed, left, top, right, bottom);
-//		adjustImageSizes();
+		adjustImageSizes();
 	}
 
 	
@@ -57,9 +80,8 @@ public class AScrollView extends HorizontalScrollView {
 	private void adjustImageSizes(){
 		
 		int width = getWidth();
-		int[] views =  { R.id.imageView1, R.id.imageView2, R.id.imageView3, R.id.imageView4, R.id.imageView5 };
-		for(int r : views){
-			ImageView iv = (ImageView) findViewById(r);
+		//int[] views =  { R.id.imageView1, R.id.imageView2, R.id.imageView3, R.id.imageView4, R.id.imageView5 };
+		for(ImageView iv : imageViews){
 			int[] location = new int[2];
 			iv.getLocationOnScreen(location);
 
@@ -83,14 +105,14 @@ public class AScrollView extends HorizontalScrollView {
 				scale = 0.1f;
 			}
 			
-		
+		/*
 			if(r == R.id.imageView5){
 				//Log.v("LOCATION", String.valueOf(imageViewCenter) );
 				//Log.v("OFFSET", String.valueOf(offset));
 				//Log.v("RATIO", String.valueOf(ratio));
 				Log.v("SCALE", String.valueOf(scale));
 				//Log.v("DIMS", String.valueOf(iWidth) + ":" + String.valueOf(iHeight) );
-			}
+			}*/
 			
 			// Compute the matrix
 			Matrix m = new Matrix();

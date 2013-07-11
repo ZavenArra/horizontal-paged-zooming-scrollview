@@ -4,13 +4,36 @@ import net.winterroot.horizonalzoomingscrollview.R;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 public class MainActivity extends Activity {
 
+	int[] resources = { R.drawable.a1, R.drawable.b1, R.drawable.c1, R.drawable.d1, R.drawable.e1 };
+
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+	
+	}
+	
+	protected void onStart(){
+		super.onStart();
+		
+		ImageView[] imageViews = new ImageView[resources.length];
+		for(int i=0; i< resources.length; i++){
+			ImageView iv = new ImageView(this);
+			iv.setImageResource(resources[i]);
+			imageViews[i] = iv;
+		}
+		
+		HorizonalZoomingCarousel carousel = new HorizonalZoomingCarousel(this, imageViews);
+		RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+		mainLayout.addView(carousel);
 	}
 
 	@Override
