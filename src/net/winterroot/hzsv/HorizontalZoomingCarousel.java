@@ -124,15 +124,6 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 				scale = 0.1f;
 			}
 			
-		/*
-			if(r == R.id.imageView5){
-				//Log.v("LOCATION", String.valueOf(imageViewCenter) );
-				//Log.v("OFFSET", String.valueOf(offset));
-				//Log.v("RATIO", String.valueOf(ratio));
-				Log.v("SCALE", String.valueOf(scale));
-				//Log.v("DIMS", String.valueOf(iWidth) + ":" + String.valueOf(iHeight) );
-			}*/
-			
 			// Compute the matrix
 			Matrix m = new Matrix();
 			m.reset();
@@ -145,13 +136,6 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			
 			iv.setScaleType(ScaleType.MATRIX);
 			iv.setImageMatrix(m);
-			
-			//LinearLayout.LayoutParams layoutParams = (android.widget.LinearLayout.LayoutParams) iv.getLayoutParams();
-			//layoutParams.height = iHeight;
-			//layoutParams.width = iWidth;
-			//iv.setLayoutParams(layoutParams);
-			//iv.getLayoutParams().height = iHeight;
-			//iv.getLayoutParams().width = iWidth;
 		}
 	}
 

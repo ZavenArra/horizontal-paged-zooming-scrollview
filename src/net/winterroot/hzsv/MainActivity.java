@@ -17,7 +17,7 @@ public class MainActivity extends Activity implements HorizontalZoomingCarouselL
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_hzsv);
 		
 	
 	}
@@ -34,7 +34,7 @@ public class MainActivity extends Activity implements HorizontalZoomingCarouselL
 		
 		HorizontalZoomingCarousel carousel = new HorizontalZoomingCarousel(this, imageViews);
 		carousel.setListener(this);
-		RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+		RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.activity_hzsv);
 		mainLayout.addView(carousel);
 	}
 
