@@ -1,11 +1,13 @@
 package net.winterroot.hzsv;
 
-import net.winterroot.horizonalzoomingscrollview.R;
 import android.content.Context;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -18,10 +20,10 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 	HorizontalZoomingCarouselListener listener = null;
 	Context c;
 	
-	int edgeBufferWidth = 220;
+	int edgeBufferWidth = 150;
+	public int matrixMultiplier = 1;
 	
 	
-	int[] resources = { R.drawable.a1, R.drawable.b1, R.drawable.c1, R.drawable.d1, R.drawable.e1 };
 	ImageView[] imageViews;
 	
 	LinearLayout mScrollableArea;
@@ -31,9 +33,16 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		c = context;
 		imageViews = instanceImageViews;
 		
+		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		int screenWidth = size.x;
+		edgeBufferWidth = (screenWidth - 108) / 2;
+		
 		mScrollableArea	 = new LinearLayout(context);	
 		mScrollableArea.setOrientation(LinearLayout.HORIZONTAL);
-		android.view.ViewGroup.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 122);
+		android.view.ViewGroup.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 122 * matrixMultiplier);
 		mScrollableArea.setLayoutParams(params);
 		
 		LinearLayout.LayoutParams bufferLayoutParams =  new LinearLayout.LayoutParams(edgeBufferWidth, LayoutParams.MATCH_PARENT);
@@ -123,6 +132,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			if (scale <= 0) {
 				scale = 0.1f;
 			}
+			scale = scale * matrixMultiplier;
 			
 		/*
 			if(r == R.id.imageView5){
@@ -141,7 +151,8 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			m.postScale(scale, scale);
 			
 			//center in frame.
-			//m.postTranslate()
+			int offsetInFrame = (int) (108 - 108 * scale) / 2;
+			m.postTranslate(offsetInFrame, 0);
 			
 			iv.setScaleType(ScaleType.MATRIX);
 			iv.setImageMatrix(m);
@@ -162,13 +173,19 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 
 	    switch(event.getAction()) {
 	        case(MotionEvent.ACTION_DOWN):
+	        	if(listener != null){
+	            	listener.onStartedMove();
+	            }
 	            break;
 	        case(MotionEvent.ACTION_UP):
 	        	
-	        	int itemWidth = 216;
+	        	int itemWidth = 216 * matrixMultiplier;
 	        	
 	        	int scrollX = getScrollX();
 	        	int page = (scrollX + itemWidth / 2) / itemWidth;
+	        	if(page >= imageViews.length){
+	        		page = imageViews.length-1;
+	        	}
 	        	int offset = page * itemWidth;
 	            this.smoothScrollTo(offset, 0);
 	            if(listener != null){
