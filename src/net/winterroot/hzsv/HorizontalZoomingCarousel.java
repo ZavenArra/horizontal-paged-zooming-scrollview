@@ -55,7 +55,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		//int screenWidth = size.x;
 		int thisViewWidth = getWidth();
 
-		edgeBufferWidth = (viewWidth - itemWidth) / 2;
+		edgeBufferWidth = (viewWidth - itemWidth * matrixMultiplier) / 2;
 
 		mScrollableArea	 = new LinearLayout(c);	
 		mScrollableArea.setOrientation(LinearLayout.HORIZONTAL);
@@ -70,7 +70,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		for(ImageView iv : imageViews){
 			//android.view.ViewGroup.LayoutParams lp = new android.view.ViewGroup.LayoutParams(216, LayoutParams.WRAP_CONTENT);
 			//iv.setLayoutParams(lp);
-			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(itemWidth, itemHeight);
+			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(itemWidth * matrixMultiplier, itemHeight * matrixMultiplier);
 			iv.setLayoutParams(layoutParams);
 			mScrollableArea.addView(iv);
 		}
@@ -144,7 +144,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 				int[] location = new int[2];
 				iv.getLocationOnScreen(location);
 
-				int imageViewCenter = (location[0] + itemWidth / 2) - paddingLeft; // This can be calculated for each imageView that is on screen
+				int imageViewCenter = (location[0] + (itemWidth * matrixMultiplier) / 2) - paddingLeft; // This can be calculated for each imageView that is on screen
 
 				if(imageViewCenter < 0){
 					imageViewCenter = 0;
@@ -173,7 +173,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 				m.postScale(scale, scale);
 
 				//center in frame.
-				int offsetInFrame = (int) (itemWidth - itemWidth * scale) / 2;
+				int offsetInFrame = (int) ((itemWidth * matrixMultiplier) - (itemWidth * matrixMultiplier) * scale) / 2;
 				m.postTranslate(offsetInFrame, 0);
 
 				iv.setScaleType(ScaleType.MATRIX);
@@ -198,15 +198,13 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			int itemWidth = this.itemWidth * matrixMultiplier;
 
 		int scrollX = getScrollX();
-		int page = (scrollX + itemWidth / 2) / itemWidth;
+		int page = (scrollX + (itemWidth * matrixMultiplier) / 2) / (itemWidth * matrixMultiplier);
 		if(page >= imageViews.length){
 			page = imageViews.length-1;
 		}
-		int offset = page * itemWidth;
-		this.smoothScrollTo(offset, 0);
-		if(listener != null){
-			listener.onItemSelected(page);
-		}
+		// Sometimes imageVies is 0 here, leading to a -1
+		
+		this.scrollToPage(page);
 
 		break;
 		}
@@ -234,11 +232,13 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			ImageView iv = new ImageView(c);  // Have to wonder about this and the memory leaks
 			iv.setImageResource(R.drawable.t1);
 
+			/*
 			if(i % 2 == 0 ) {
 				iv.setBackgroundColor(0xFF00FF00);
 			} else {
 				iv.setBackgroundColor(0xFFFF0000);
 			}
+			*/
 			imageViews[i] = iv;
 		}
 
@@ -246,6 +246,15 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 
 
 
+	}
+
+	public void scrollToPage(int page) {
+		int offset = page * itemWidth * matrixMultiplier;
+		this.smoothScrollTo(offset, 0);
+		if(listener != null){
+			listener.onItemSelected(page);
+		}
+		
 	}
 
 
