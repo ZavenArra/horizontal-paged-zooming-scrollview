@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 
 public class CarouselAdapter extends CursorAdapter {
 
+	public static final String IMAGE_COLUMN = "IMAGE_COLUMN";
+
 	public CarouselAdapter(Context context, Cursor c) {
 		super(context, c);
 		// TODO Auto-generated constructor stub

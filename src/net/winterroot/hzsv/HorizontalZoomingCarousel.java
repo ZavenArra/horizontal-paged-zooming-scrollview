@@ -1,11 +1,16 @@
 package net.winterroot.hzsv;
 
+import java.io.File;
+
 import com.amci.nissan360.R;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.os.Environment;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -212,8 +217,8 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		return result;
 	}
 
-	public void setAdapter(CarouselAdapter brandAdapter) {
-		mAdapter = brandAdapter;
+	public void setAdapter(CarouselAdapter carouselAdapter) {
+		mAdapter = carouselAdapter;
 	}
 
 	public void cursorUpdate(){
@@ -228,17 +233,19 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		// http://stackoverflow.com/questions/3117429/garbage-collector-in-android
 
 		imageViews = new ImageView[mAdapter.getCount()];
+		// This logic should move to the adapter, to take advantage of view reuse
 		for(int i=0; i< mAdapter.getCount(); i++){
 			ImageView iv = new ImageView(c);  // Have to wonder about this and the memory leaks
-			iv.setImageResource(R.drawable.t1);
-
-			/*
-			if(i % 2 == 0 ) {
-				iv.setBackgroundColor(0xFF00FF00);
+			Cursor c = mAdapter.getCursor();
+			c.moveToPosition(i);
+			String imagePath = getContext().getFilesDir().getPath() + "/" + c.getString(c.getColumnIndex(CarouselAdapter.IMAGE_COLUMN));
+		
+			File file= new File( imagePath);
+			if (file.exists()) {
+				iv.setImageBitmap(BitmapFactory.decodeFile(imagePath));
 			} else {
-				iv.setBackgroundColor(0xFFFF0000);
+				iv.setBackgroundColor(0xFF00FF00);
 			}
-			*/
 			imageViews[i] = iv;
 		}
 
