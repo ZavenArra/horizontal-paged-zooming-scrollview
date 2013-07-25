@@ -41,6 +41,8 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 	LinearLayout mScrollableArea = null;
 
 	CarouselAdapter mAdapter;
+	
+	int currentSelectedIndex = 0;
 
 	public HorizontalZoomingCarousel(Context context, int setItemWidth, int setItemHeight) {
 		super(context);
@@ -239,7 +241,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			Cursor c = mAdapter.getCursor();
 			c.moveToPosition(i);
 			String imagePath = getContext().getFilesDir().getPath() + "/" + c.getString(c.getColumnIndex(CarouselAdapter.IMAGE_COLUMN));
-		
+
 			File file= new File( imagePath);
 			if (file.exists()) {
 				iv.setImageBitmap(BitmapFactory.decodeFile(imagePath));
@@ -261,7 +263,12 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 		if(listener != null){
 			listener.onItemSelected(page);
 		}
+		currentSelectedIndex = page;
 		
+	}
+	
+	public int getCurrentSelectedIndex(){
+		return currentSelectedIndex;
 	}
 
 
