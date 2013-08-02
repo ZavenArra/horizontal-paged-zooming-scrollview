@@ -11,12 +11,16 @@ import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -24,7 +28,7 @@ import android.widget.LinearLayout;
 
 
 
-public class HorizontalZoomingCarousel extends HorizontalScrollView {
+public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 
 	HorizontalZoomingCarouselListener listener = null;
 	Context c;
@@ -41,8 +45,10 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 	LinearLayout mScrollableArea = null;
 
 	CarouselAdapter mAdapter;
-	
+
 	int currentSelectedIndex = 0;
+
+	boolean zoomEnabled = true;
 
 	public HorizontalZoomingCarousel(Context context, int setItemWidth, int setItemHeight) {
 		super(context);
@@ -125,16 +131,13 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 	}
 
 
-	@Override
-	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-		super.onScrollChanged(l, t, oldl, oldt);
-		//Log.v("SCROLL", String.valueOf(l));
 
-		adjustImageSizes();
-
-	}
 
 	private void adjustImageSizes(){
+
+		if(!zoomEnabled){
+			return;
+		}
 
 		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
@@ -210,7 +213,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			page = imageViews.length-1;
 		}
 		// Sometimes imageVies is 0 here, leading to a -1
-		
+
 		this.scrollToPage(page);
 
 		break;
@@ -248,6 +251,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 			} else {
 				iv.setBackgroundColor(0xFF00FF00);
 			}
+			iv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 			imageViews[i] = iv;
 		}
 
@@ -260,16 +264,63 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView {
 	public void scrollToPage(int page) {
 		int offset = page * itemWidth * matrixMultiplier;
 		this.smoothScrollTo(offset, 0);
-		if(listener != null){
-			listener.onItemSelected(page);
-		}
+
 		currentSelectedIndex = page;
-		
+
+	}    
+
+	private static final int WHAT = 1;
+
+	class MyHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			if(!hasMessages(WHAT)) {
+				Log.i("TestScroll", "Last msg!. Position from " 
+						+ msg.arg1 + " to " + msg.arg2);   
+				if(listener!=null){
+					listener.onItemSelected(currentSelectedIndex);
+				}
+			}
+		}
 	}
-	
+
+	private Handler mHandler = new MyHandler();
+
+
+	@Override
+	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+		super.onScrollChanged(l, t, oldl, oldt);
+		
+		adjustImageSizes();
+		
+		final Message msg = Message.obtain();
+		msg.arg1 = oldt;
+		msg.arg2 = t;
+		msg.what = WHAT;
+		mHandler.sendMessageDelayed(msg, 200);
+	}
+
+	/*
+	@Override
+	public void onScrollStateChanged(AbsListView view, int scrollState) {
+		// TODO Auto-generated method stub
+		if(scrollState == 0) {
+			Log.i("a", "scrolling stopped...");
+			listener.onItemSelected(currentSelectedIndex);
+		}
+	}
+	 */
+
 	public int getCurrentSelectedIndex(){
 		return currentSelectedIndex;
 	}
+
+	public void setZoomEnabled(boolean b) {
+		zoomEnabled = false;
+	}
+
+
 
 
 }
