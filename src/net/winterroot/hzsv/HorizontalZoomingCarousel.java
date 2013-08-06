@@ -2,7 +2,9 @@ package net.winterroot.hzsv;
 
 import java.io.File;
 
+import com.amci.nissan360.Nissan360;
 import com.amci.nissan360.R;
+import com.amci.nissan360.Utilities;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -49,6 +51,8 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	int currentSelectedIndex = 0;
 
 	boolean zoomEnabled = true;
+	
+	public int flingVelocity = 100;
 
 	public HorizontalZoomingCarousel(Context context, int setItemWidth, int setItemHeight) {
 		super(context);
@@ -115,11 +119,13 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	 */
 
 	@Override
-	public void fling (int velocityY)
+	public void fling (int velocity)
 	{
-		/*Scroll view is no longer gonna handle flings
-		 * super.fling(velocityY);
-		 */
+		if(velocity > flingVelocity){
+			velocity = flingVelocity;
+		}
+		super.fling(velocity);
+
 	}
 
 
@@ -245,12 +251,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 			c.moveToPosition(i);
 			String imagePath = getContext().getFilesDir().getPath() + "/" + c.getString(c.getColumnIndex(CarouselAdapter.IMAGE_COLUMN));
 
-			File file= new File( imagePath);
-			if (file.exists()) {
-				iv.setImageBitmap(BitmapFactory.decodeFile(imagePath));
-			} else {
-				iv.setBackgroundColor(0xFF00FF00);
-			}
+			Utilities.setImageBitmapNissan360(this, iv, imagePath)
 			iv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 			imageViews[i] = iv;
 		}
@@ -291,9 +292,9 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	@Override
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
-		
+
 		adjustImageSizes();
-		
+
 		final Message msg = Message.obtain();
 		msg.arg1 = oldt;
 		msg.arg2 = t;
