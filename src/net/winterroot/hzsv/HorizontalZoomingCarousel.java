@@ -8,6 +8,7 @@ import com.amci.nissan360.Utilities;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -40,7 +41,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 
 	int itemWidth = 0;
 	int itemHeight = 0;
-	int viewWidth = 656; // Hard coded for target device for now
+	int viewWidth = 720; // Hard coded for target device for now
 
 	ImageView[] imageViews;
 
@@ -51,7 +52,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	int currentSelectedIndex = 0;
 
 	boolean zoomEnabled = true;
-	
+
 	public int flingVelocity = 100;
 
 	public HorizontalZoomingCarousel(Context context, int setItemWidth, int setItemHeight) {
@@ -59,20 +60,22 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 		c = context;
 		itemWidth = setItemWidth;
 		itemHeight = setItemHeight;
+		setVerticalScrollBarEnabled(false);
+		setHorizontalScrollBarEnabled(false);
 
 	}
 
 	public void layoutImageViews(){
-		/*WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		Point size = new Point();
 		display.getSize(size);
-		 */
+		 
 
-		//int screenWidth = size.x;
-		int thisViewWidth = getWidth();
+		int screenWidth = size.x;
+		//int thisViewWidth = getWidth();
 
-		edgeBufferWidth = (viewWidth - itemWidth * matrixMultiplier) / 2;
+		edgeBufferWidth = (screenWidth - itemWidth * matrixMultiplier) / 2;
 
 		mScrollableArea	 = new LinearLayout(c);	
 		mScrollableArea.setOrientation(LinearLayout.HORIZONTAL);
@@ -85,8 +88,6 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 		mScrollableArea.addView(edgeBuffer);
 
 		for(ImageView iv : imageViews){
-			//android.view.ViewGroup.LayoutParams lp = new android.view.ViewGroup.LayoutParams(216, LayoutParams.WRAP_CONTENT);
-			//iv.setLayoutParams(lp);
 			LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(itemWidth * matrixMultiplier, itemHeight * matrixMultiplier);
 			iv.setLayoutParams(layoutParams);
 			mScrollableArea.addView(iv);
@@ -141,10 +142,6 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 
 	private void adjustImageSizes(){
 
-		if(!zoomEnabled){
-			return;
-		}
-
 		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		Point size = new Point();
@@ -157,6 +154,12 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 		int paddingLeft = (screenWidth - width) / 2;
 		if(imageViews != null){
 			for(ImageView iv : imageViews){
+				if(!zoomEnabled){
+					iv.setScaleType(ScaleType.CENTER_INSIDE);
+					continue;
+				}
+				
+				
 				int[] location = new int[2];
 				iv.getLocationOnScreen(location);
 
@@ -189,8 +192,37 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 				m.postScale(scale, scale);
 
 				//center in frame.
-				int offsetInFrame = (int) ((itemWidth * matrixMultiplier) - (itemWidth * matrixMultiplier) * scale) / 2;
-				m.postTranslate(offsetInFrame, 0);
+				// int offsetInFrame = (int) ((itemWidth * matrixMultiplier) - (itemWidth * matrixMultiplier) * scale) / 2;
+
+				// move close to big image
+				int offsetInFrame = 0;
+				int padding = 20;
+
+				if(scrollerCenter - imageViewCenter < 0){
+					/*
+					padding = padding - (int) offset;
+					if(padding < 0){
+						padding = 0;
+					}
+					*/
+					//offsetInFrame = padding;
+					
+					// just this
+					if(offset < padding){
+						padding = (int) offset;
+					}
+					offsetInFrame = padding;
+					//padding = 0;
+				} else {
+					if(offset < padding){
+						padding = (int) offset;
+					}
+
+					offsetInFrame = (int) (itemWidth - scale * itemWidth) - padding;
+				}
+				
+				int offsetY = (int) (itemHeight - scale * itemHeight) / 2;
+				m.postTranslate(offsetInFrame, offsetY);
 
 				iv.setScaleType(ScaleType.MATRIX);
 				iv.setImageMatrix(m);
@@ -249,22 +281,43 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 			ImageView iv = new ImageView(c);  // Have to wonder about this and the memory leaks
 			Cursor c = mAdapter.getCursor();
 			c.moveToPosition(i);
-			String imagePath = getContext().getFilesDir().getPath() + "/" + c.getString(c.getColumnIndex(CarouselAdapter.IMAGE_COLUMN));
+			String imagePath = c.getString(c.getColumnIndex(CarouselAdapter.IMAGE_COLUMN));
 
-			Utilities.setImageBitmapNissan360(this, iv, imagePath)
-			iv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			Utilities.setImageBitmapNissan360(getContext(), iv, imagePath);
+			iv.setScaleType(ImageView.ScaleType.MATRIX);
 			imageViews[i] = iv;
 		}
 
 		layoutImageViews();
 
-
-
 	}
 
+
+	class MHandler extends Handler {
+
+		public MHandler() {
+			super();
+		}
+
+		public int offset;
+
+		public void handleMessage(Message msg) {
+			smoothScrollTo(offset, 0);
+		}
+
+		public void sleep(long delayMillis) {
+			this.removeMessages(0);
+			sendMessageDelayed(obtainMessage(0), delayMillis);
+		}
+	};
+	MHandler scrollHandler = new MHandler();
+
+
 	public void scrollToPage(int page) {
-		int offset = page * itemWidth * matrixMultiplier;
-		this.smoothScrollTo(offset, 0);
+		final int offset = page * itemWidth * matrixMultiplier;
+		//this.smoothScrollTo(offset, 0);
+		scrollHandler.offset = offset;
+		scrollHandler.sleep(0);
 
 		currentSelectedIndex = page;
 
@@ -293,6 +346,10 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
 
+		if(mAdapter == null || mAdapter.getCount() == 0){
+			return;
+		}
+
 		adjustImageSizes();
 
 		final Message msg = Message.obtain();
@@ -318,7 +375,7 @@ public class HorizontalZoomingCarousel extends HorizontalScrollView  {
 	}
 
 	public void setZoomEnabled(boolean b) {
-		zoomEnabled = false;
+		zoomEnabled = b;
 	}
 
 
